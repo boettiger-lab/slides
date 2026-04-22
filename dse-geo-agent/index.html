@@ -1,0 +1,1213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>geo-agent: LLM-Powered Geospatial Analysis</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/solarized.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/solarized-dark.min.css">
+  <style>
+    :root {
+      --r-background-color: #fdf6e3;
+      --r-main-color: #586e75;
+      --r-heading-color: #268bd2;
+      --r-link-color: #268bd2;
+      --r-selection-background-color: #268bd233;
+    }
+    .reveal h1, .reveal h2 { text-transform: none; }
+    .reveal h3 { text-transform: none; color: #2aa198; }
+    .columns h3 { margin: 0 0 8px 0; font-size: 1em; }
+    .reveal .subtitle { color: #93a1a1; font-style: italic; font-size: 0.8em; }
+    .reveal .accent { color: #268bd2; }
+    .reveal .warn { color: #dc322f; }
+    .reveal .ok { color: #859900; }
+
+    /* Screenshot placeholder */
+    .screenshot-placeholder {
+      border: 2px dashed #93a1a1;
+      border-radius: 12px;
+      padding: 40px 20px;
+      margin: 20px auto;
+      color: #93a1a1;
+      font-style: italic;
+      text-align: center;
+      background: #eee8d5;
+      max-width: 800px;
+    }
+    .screenshot-placeholder::before {
+      content: "\1F4F7";
+      display: block;
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    /* Diagram boxes */
+    .diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .diagram .box {
+      background: #eee8d5;
+      border: 1px solid #268bd255;
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-size: 0.65em;
+      color: #586e75;
+      text-align: center;
+      min-width: 100px;
+    }
+    .diagram .box.highlight {
+      border-color: #268bd2;
+      background: #dce9f7;
+      box-shadow: 0 0 12px #268bd233;
+    }
+    .diagram .arrow {
+      color: #268bd288;
+      font-size: 1.2em;
+    }
+    .diagram .arrow-down {
+      color: #268bd288;
+      font-size: 1.2em;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* Vertical flow */
+    .vflow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin: 15px 0;
+    }
+    .vflow .box {
+      width: 320px;
+      background: #eee8d5;
+      border: 1px solid #268bd255;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 0.65em;
+      color: #586e75;
+      text-align: center;
+    }
+    .vflow .box.highlight {
+      border-color: #268bd2;
+      background: #dce9f7;
+      box-shadow: 0 0 12px #268bd233;
+    }
+
+    /* Side by side columns */
+    .columns {
+      display: flex;
+      gap: 30px;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .columns .col {
+      flex: 1;
+      max-width: 440px;
+    }
+
+    /* Tool list */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      font-size: 0.55em;
+      margin: 10px 0;
+    }
+    .tool-grid .tool {
+      background: #eee8d5;
+      border-radius: 6px;
+      padding: 8px 12px;
+      border-left: 3px solid #268bd255;
+    }
+    .tool-grid .tool.remote {
+      border-left-color: #dc322f88;
+    }
+    .tool-grid .tool code {
+      color: #268bd2;
+      font-size: 1.05em;
+    }
+
+    /* Benchmark table */
+    .reveal table {
+      font-size: 0.55em;
+      margin: 15px auto;
+    }
+    .reveal table th {
+      background: #eee8d5;
+      color: #268bd2;
+      border-bottom: 2px solid #268bd255;
+    }
+    .reveal table td, .reveal table th {
+      padding: 6px 14px;
+      border: 1px solid #93a1a1;
+    }
+    .reveal table tr:nth-child(even) { background: #fdf6e3; }
+
+    /* Cycle diagram */
+    .cycle {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .cycle .node {
+      background: #eee8d5;
+      border: 2px solid #268bd255;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 0.5em;
+      padding: 10px;
+      line-height: 1.3;
+    }
+    .cycle .curve-arrow { color: #268bd288; font-size: 1.4em; }
+
+    /* File tree */
+    .file-tree {
+      text-align: left;
+      font-family: monospace;
+      font-size: 0.55em;
+      background: #eee8d5;
+      padding: 15px 20px;
+      border-radius: 8px;
+      display: inline-block;
+      line-height: 1.6;
+    }
+    .file-tree .dir { color: #2aa198; }
+    .file-tree .file { color: #586e75; }
+    .file-tree .comment { color: #93a1a1; }
+
+    /* Client icons row */
+    .client-row {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 15px 0;
+    }
+    .client-row .client {
+      background: #eee8d5;
+      border: 1px solid #268bd233;
+      border-radius: 10px;
+      padding: 14px 18px;
+      text-align: center;
+      font-size: 0.55em;
+      min-width: 100px;
+    }
+    .client-row .client .icon { font-size: 1.8em; margin-bottom: 6px; }
+
+    /* Small code */
+    .reveal pre { font-size: 0.48em; }
+    .reveal code { font-size: 0.9em; }
+
+    /* Section title slides */
+    .section-title h2 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+    }
+    .section-title .section-num {
+      color: #268bd244;
+      font-size: 3em;
+      font-weight: bold;
+      position: absolute;
+      top: 20px;
+      right: 40px;
+    }
+
+    /* Approval flow mockup */
+    .approval-mock {
+      background: #eee8d5;
+      border: 1px solid #93a1a1;
+      border-radius: 10px;
+      padding: 16px;
+      max-width: 500px;
+      margin: 15px auto;
+      text-align: left;
+      font-size: 0.55em;
+    }
+    .approval-mock .reasoning {
+      color: #657b83;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #93a1a1;
+    }
+    .approval-mock details {
+      margin-bottom: 12px;
+    }
+    .approval-mock summary {
+      color: #2aa198;
+      cursor: pointer;
+    }
+    .approval-mock .buttons {
+      display: flex;
+      gap: 10px;
+    }
+    .approval-mock .btn {
+      padding: 6px 20px;
+      border-radius: 6px;
+      border: none;
+      font-size: 0.95em;
+      cursor: pointer;
+    }
+    .approval-mock .btn-approve {
+      background: #859900;
+      color: #fdf6e3;
+    }
+    .approval-mock .btn-cancel {
+      background: #93a1a1;
+      color: #fdf6e3;
+    }
+
+    /* Principles grid */
+    .principles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 20px 0;
+    }
+    .principles .p-item {
+      background: #eee8d5;
+      border-radius: 8px;
+      padding: 14px 18px;
+      text-align: left;
+      font-size: 0.55em;
+      border-left: 3px solid #268bd2;
+    }
+    .principles .p-item strong { color: #268bd2; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============================================================ -->
+<!-- OPENING -->
+<!-- ============================================================ -->
+
+<!-- Slide 1: Title -->
+<section>
+  <h1 style="font-size:1.6em;">geo-agent</h1>
+  <p style="font-size:1.1em; color:#2aa198;">An LLM-Powered Geospatial Analysis Ecosystem</p>
+  <br>
+  <p style="font-size:0.7em; color:#93a1a1;">Carl Boettiger</p>
+  <p style="font-size:0.6em; color:#93a1a1;">UC Berkeley &middot; boettiger-lab</p>
+</section>
+
+<!-- Slide 2: Wolf puppy -->
+<section data-background-color="#fdf6e3">
+  <img src="wolf-puppy.png" style="max-height:70vh; max-width:70%; object-fit:contain; display:block; margin:0 auto;">
+</section>
+
+<!-- Slide 3: Wolf map -->
+<section data-background-image="https://s3-west.nrp-nautilus.io/public-boettiger-lab/slides/dse-geo-agent/wolf-map-2.gif" data-background-size="contain" data-background-color="#fdf6e3">
+</section>
+
+<!-- ============================================================ -->
+<!-- THE USER EXPERIENCE -->
+<!-- ============================================================ -->
+
+<!-- Slide 4: The demo -->
+<section>
+  <h2>What if exploring geospatial data<br>was a <span class="accent">conversation</span>?</h2>
+  <img src="high-seas.png" alt="Geo-agent app showing interactive map with chat interface" style="width:82%; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.2); margin-top:6px;">
+</section>
+
+<!-- Slide 5: Config-driven -->
+<section>
+  <h2>Config-driven, not code-driven</h2>
+  <pre><code class="language-json" data-trim>{
+  "catalog": "https://stac.example.io/catalog.json",
+  "collections": [
+    "protected-areas",
+    {
+      "collection_id": "carbon-stocks",
+      "assets": [
+        "irrecoverable-total-2018-cog",
+        { "id": "manageable-cog", "display_name": "Manageable Carbon" }
+      ]
+    },
+    {
+      "collection_id": "watersheds",
+      "assets": [{
+        "id": "basins",
+        "versions": [
+          { "label": "L3 – Major",  "asset_id": "hydrobasins_l3" },
+          { "label": "L6 – Fine",   "asset_id": "hydrobasins_l6" }
+        ]
+      }]
+    }
+  ]
+}</code></pre>
+  <p class="subtitle">Simple strings &middot; Objects with overrides &middot; Versioned assets with dropdown</p>
+</section>
+
+
+<!-- ============================================================ -->
+<!-- DATA PIPELINE -->
+<!-- ============================================================ -->
+
+<!-- Slide 7: System overview -->
+<section data-background-image="lego-overview.png" data-background-size="contain" data-background-color="#fdf6e3">
+</section>
+
+<!-- Slide 8: Section title -->
+<section class="section-title">
+  <span class="section-num">I</span>
+  <h2>The Data Pipeline</h2>
+  <p class="subtitle">From raw shapefiles to cloud-native formats</p>
+</section>
+
+<!-- Slide 9: The problem -->
+<section>
+  <h2>Raw geospatial data is <span class="warn">messy</span></h2>
+  <div class="columns" style="font-size: 0.7em;">
+    <div class="col">
+      <h3>What we get</h3>
+      <ul>
+        <li>Shapefiles (multi-file, projections vary)</li>
+        <li>GeoJSON (huge, no indexing)</li>
+        <li>GeoTIFF rasters (gigabytes each)</li>
+        <li>Scattered across FTP servers</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>What we need</h3>
+      <ul>
+        <li>Web-ready vector tiles</li>
+        <li>Query-ready columnar formats</li>
+        <li>Spatial indexing for fast joins</li>
+        <li>Unified metadata catalog</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 10: Cloud-native formats -->
+<section>
+  <h2>Three cloud-native formats</h2>
+  <div class="diagram" style="gap: 20px;">
+    <div class="box" style="min-width: 200px;">
+      <strong style="color:#859900;">GeoParquet</strong><br>
+      <span style="font-size:0.85em; color:#93a1a1;">Columnar &middot; DuckDB queries<br>Spatial joins</span>
+    </div>
+    <div class="box" style="min-width: 200px;">
+      <strong style="color:#b58900;">PMTiles</strong><br>
+      <span style="font-size:0.85em; color:#93a1a1;">Vector tiles &middot; MapLibre<br>Single-file, no tile server</span>
+    </div>
+    <div class="box" style="min-width: 200px;">
+      <strong style="color:#dc322f;">H3 Hex Parquet</strong><br>
+      <span style="font-size:0.85em; color:#93a1a1;">Uber H3 grid &middot; Fast aggregation<br>Hive-partitioned on S3</span>
+    </div>
+  </div>
+  <p class="subtitle">Every vector dataset produces all three. Rasters: COG + H3 hex.</p>
+</section>
+
+<!-- Slide 11: STAC catalog screenshot -->
+<section>
+  <h2>Boettiger Lab Geospatial Datasets</h2>
+  <img src="stac-catalog.png" alt="STAC catalog browser showing 30 datasets" style="width: 90%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+  <p class="subtitle"><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-data/stac/catalog.json" style="color:#268bd2;">radiantearth.github.io/stac-browser</a></p>
+</section>
+
+<!-- Slide 12: K8s parallel jobs -->
+<section>
+  <h2>Kubernetes parallel processing</h2>
+  <div class="vflow" style="margin: 6px 0; gap: 4px;">
+    <div class="box">setup-bucket <span style="color:#93a1a1;">(1 pod)</span></div>
+    <div class="arrow-down">&darr;</div>
+    <div class="box">convert: raw &rarr; GeoParquet <span style="color:#93a1a1;">(1 pod)</span></div>
+    <div class="arrow-down">&darr;</div>
+    <div style="display:flex; gap:20px;">
+      <div class="box" style="width:200px;">PMTiles <span style="color:#93a1a1;">(1 pod)</span></div>
+      <div class="box highlight" style="width:200px;">H3 hex <span style="color:#859900;">(50 pods)</span></div>
+    </div>
+    <div class="arrow-down">&darr;</div>
+    <div class="box">repartition by h0 <span style="color:#93a1a1;">(1 pod)</span></div>
+  </div>
+  <p class="subtitle" style="margin-top: 8px;">cng-datasets CLI generates YAML &middot; kubectl apply runs it<br>"Your laptop generates YAML. The cluster does the work."</p>
+</section>
+
+<!-- Slide 13: A dataset's journey -->
+<section>
+  <h2>A dataset's journey</h2>
+  <div class="diagram" style="flex-direction: column; gap: 4px; font-size:0.7em;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div class="box" style="min-width:130px; background:#f5e6e6; border-color:#dc322f55;">Shapefile<br><span style="color:#93a1a1;">FTP server</span></div>
+      <span class="arrow">&rarr;</span>
+      <div class="box" style="min-width:130px;">GeoParquet<br><span style="color:#93a1a1;">1 pod</span></div>
+      <span class="arrow">&rarr;</span>
+      <div class="box highlight" style="min-width:130px;">H3 Hex<br><span style="color:#93a1a1;">50 pods</span></div>
+      <span class="arrow">&rarr;</span>
+      <div class="box" style="min-width:180px;">Hive-partitioned<br><code style="font-size:0.85em;">h0=*/data_0.parquet</code></div>
+    </div>
+  </div>
+  <div class="file-tree" style="margin-top: 15px;">
+    <span class="dir">s3://public-biodiversity/</span><br>
+    &nbsp;&nbsp;<span class="file">wdpa.parquet</span> <span class="comment">&larr; GeoParquet</span><br>
+    &nbsp;&nbsp;<span class="file">wdpa.pmtiles</span> <span class="comment">&larr; Vector tiles</span><br>
+    &nbsp;&nbsp;<span class="dir">wdpa/hex/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">h0=801ffffffffffff/</span><span class="file">data_0.parquet</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">h0=802ffffffffffff/</span><span class="file">data_0.parquet</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">... (122 geographic partitions)</span>
+  </div>
+</section>
+
+<!-- Slide 14: What is H3 -->
+<section>
+  <h2>H3: a universal hexagonal grid</h2>
+  <div class="columns" style="align-items:center; gap:30px; margin-top:8px; font-size:0.65em;">
+    <div class="col">
+      <svg viewBox="0 0 420 270" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:8px;">
+        <rect width="420" height="270" fill="#fdf6e3" rx="10"/>
+        <polygon points="62.0,42.0 45.0,71.4 11.0,71.4 -6.0,42.0 11.0,12.6 45.0,12.6" fill="none" stroke="#93a1a1" stroke-width="0.7" stroke-dasharray="2,3"/><polygon points="62.0,100.9 45.0,130.3 11.0,130.3 -6.0,100.9 11.0,71.4 45.0,71.4" fill="#dce9f7" fill-opacity="0.8" stroke="#268bd2" stroke-width="1" stroke-dasharray="4,2"/><polygon points="62.0,159.8 45.0,189.2 11.0,189.2 -6.0,159.8 11.0,130.3 45.0,130.3" fill="#dce9f7" fill-opacity="0.8" stroke="#268bd2" stroke-width="1" stroke-dasharray="4,2"/><polygon points="62.0,218.7 45.0,248.1 11.0,248.1 -6.0,218.7 11.0,189.2 45.0,189.2" fill="none" stroke="#93a1a1" stroke-width="0.7" stroke-dasharray="2,3"/><polygon points="113.0,71.4 96.0,100.9 62.0,100.9 45.0,71.4 62.0,42.0 96.0,42.0" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="113.0,130.3 96.0,159.8 62.0,159.8 45.0,130.3 62.0,100.9 96.0,100.9" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="113.0,189.2 96.0,218.7 62.0,218.7 45.0,189.2 62.0,159.8 96.0,159.8" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="113.0,248.1 96.0,270 62.0,270 45.0,248.1 62.0,218.7 96.0,218.7" fill="#dce9f7" fill-opacity="0.8" stroke="#268bd2" stroke-width="1" stroke-dasharray="4,2"/><polygon points="164.0,42.0 147.0,71.4 113.0,71.4 96.0,42.0 113.0,12.6 147.0,12.6" fill="#dce9f7" fill-opacity="0.8" stroke="#268bd2" stroke-width="1" stroke-dasharray="4,2"/><polygon points="164.0,100.9 147.0,130.3 113.0,130.3 96.0,100.9 113.0,71.4 147.0,71.4" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="164.0,159.8 147.0,189.2 113.0,189.2 96.0,159.8 113.0,130.3 147.0,130.3" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="164.0,218.7 147.0,248.1 113.0,248.1 96.0,218.7 113.0,189.2 147.0,189.2" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="215.0,71.4 198.0,100.9 164.0,100.9 147.0,71.4 164.0,42.0 198.0,42.0" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="215.0,130.3 198.0,159.8 164.0,159.8 147.0,130.3 164.0,100.9 198.0,100.9" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="215.0,189.2 198.0,218.7 164.0,218.7 147.0,189.2 164.0,159.8 198.0,159.8" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="215.0,248.1 198.0,270 164.0,270 147.0,248.1 164.0,218.7 198.0,218.7" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="266.0,42.0 249.0,71.4 215.0,71.4 198.0,42.0 215.0,12.6 249.0,12.6" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="266.0,100.9 249.0,130.3 215.0,130.3 198.0,100.9 215.0,71.4 249.0,71.4" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="266.0,159.8 249.0,189.2 215.0,189.2 198.0,159.8 215.0,130.3 249.0,130.3" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="266.0,218.7 249.0,248.1 215.0,248.1 198.0,218.7 215.0,189.2 249.0,189.2" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="317.0,71.4 300.0,100.9 266.0,100.9 249.0,71.4 266.0,42.0 300.0,42.0" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="317.0,130.3 300.0,159.8 266.0,159.8 249.0,130.3 266.0,100.9 300.0,100.9" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="317.0,189.2 300.0,218.7 266.0,218.7 249.0,189.2 266.0,159.8 300.0,159.8" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="317.0,248.1 300.0,270 266.0,270 249.0,248.1 266.0,218.7 300.0,218.7" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="368.0,42.0 351.0,71.4 317.0,71.4 300.0,42.0 317.0,12.6 351.0,12.6" fill="#dce9f7" fill-opacity="0.8" stroke="#268bd2" stroke-width="1" stroke-dasharray="4,2"/><polygon points="368.0,100.9 351.0,130.3 317.0,130.3 300.0,100.9 317.0,71.4 351.0,71.4" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="368.0,159.8 351.0,189.2 317.0,189.2 300.0,159.8 317.0,130.3 351.0,130.3" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="368.0,218.7 351.0,248.1 317.0,248.1 300.0,218.7 317.0,189.2 351.0,189.2" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.5"/><polygon points="419.0,130.3 402.0,159.8 368.0,159.8 351.0,130.3 368.0,100.9 402.0,100.9" fill="#dce9f7" fill-opacity="0.8" stroke="#268bd2" stroke-width="1" stroke-dasharray="4,2"/><polygon points="419.0,189.2 402.0,218.7 368.0,218.7 351.0,189.2 368.0,159.8 402.0,159.8" fill="#dce9f7" fill-opacity="0.8" stroke="#268bd2" stroke-width="1" stroke-dasharray="4,2"/>
+        <polygon points="110,48 210,32 320,55 375,120 370,195 295,248 160,255 65,210 42,135 60,75" fill="none" stroke="#dc322f" stroke-width="2.5" stroke-linejoin="round"/>
+        <polygon points="290,215 278,222 278,208" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="1.2"/>
+        <text x="295" y="224" font-size="11" fill="#586e75" font-family="sans-serif">inside</text>
+        <polygon points="290,238 278,245 278,231" fill="#dce9f7" fill-opacity="0.9" stroke="#268bd2" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="295" y="247" font-size="11" fill="#586e75" font-family="sans-serif">partial</text>
+        <line x1="5" y1="258" x2="20" y2="258" stroke="#dc322f" stroke-width="2.5"/>
+        <text x="24" y="262" font-size="11" fill="#586e75" font-family="sans-serif">boundary</text>
+      </svg>
+    </div>
+    <div class="col">
+      <ul style="line-height:1.5; padding-left:1.2em; margin:0;">
+        <li>Uber H3 discretizes Earth at <strong>16 resolutions</strong> (res&nbsp;0–15)</li>
+        <li>Res&nbsp;8 &asymp; <strong>0.74&thinsp;km&sup2;</strong> per cell &mdash; ~86M cells globally</li>
+        <li>Every point on Earth has a unique cell ID at every resolution</li>
+        <li>Equal-area hexagons &mdash; uniform neighbor distance, no polar distortion</li>
+        <li>Works identically for <strong>vectors</strong> (polygon&nbsp;&rarr;&nbsp;cells) and <strong>rasters</strong> (pixel&nbsp;&rarr;&nbsp;cell)</li>
+      </ul>
+      <p class="accent" style="margin-top:14px; font-style:italic;">One grid. Any dataset. Any resolution.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 15: H3 spatial joins -->
+<section>
+  <h2>H3 replaces polygon geometry with integer math</h2>
+  <div class="columns" style="font-size:0.62em; align-items:flex-start; gap:20px; margin-top:10px;">
+    <div class="col" style="border:1px solid #dc322f44; border-radius:10px; padding:12px;">
+      <h3 style="color:#dc322f;">The problem: polygon operations</h3>
+      <svg viewBox="0 0 260 120" xmlns="http://www.w3.org/2000/svg" style="width:100%; margin-bottom:8px;">
+        <rect width="260" height="120" fill="#fdf6e3" rx="6"/>
+        <ellipse cx="90" cy="58" rx="76" ry="44" fill="#268bd222" stroke="#268bd2" stroke-width="2"/>
+        <ellipse cx="170" cy="58" rx="76" ry="44" fill="#b5890022" stroke="#b58900" stroke-width="2"/>
+        <text x="44" y="36" font-size="10" fill="#268bd2" font-weight="bold" font-family="sans-serif">National Park</text>
+        <text x="136" y="36" font-size="10" fill="#b58900" font-weight="bold" font-family="sans-serif">Wildlife Refuge</text>
+        <text x="130" y="60" font-size="9" fill="#dc322f" font-family="sans-serif" text-anchor="middle">overlap:</text>
+        <text x="130" y="72" font-size="9" fill="#dc322f" font-family="sans-serif" text-anchor="middle">double-counted!</text>
+        <line x1="130" y1="14" x2="130" y2="102" stroke="#dc322f" stroke-width="1" stroke-dasharray="3,2"/>
+      </svg>
+      <p>ST_Intersection, ST_Union, ST_Area &mdash;<br>O(n&sup2;), complex, error-prone on bad geometry</p>
+    </div>
+    <div class="col" style="border:1px solid #85990044; border-radius:10px; padding:12px;">
+      <h3 style="color:#859900;">H3: hexagonize both, then set ops</h3>
+      <svg viewBox="0 0 260 120" xmlns="http://www.w3.org/2000/svg" style="width:100%; margin-bottom:8px;">
+        <rect width="260" height="120" fill="#fdf6e3" rx="6"/>
+        <polygon points="29.7,47.0 25.6,54.1 17.4,54.1 13.3,47.0 17.4,39.9 25.6,39.9" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="29.7,62.6 25.6,69.7 17.4,69.7 13.3,62.6 17.4,55.5 25.6,55.5" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="29.7,78.1 25.6,85.2 17.4,85.2 13.3,78.1 17.4,71.0 25.6,71.0" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="43.2,39.2 39.1,46.3 30.9,46.3 26.8,39.2 30.9,32.1 39.1,32.1" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="43.2,54.8 39.1,61.9 30.9,61.9 26.8,54.8 30.9,47.7 39.1,47.7" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="43.2,70.4 39.1,77.5 30.9,77.5 26.8,70.4 30.9,63.3 39.1,63.3" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="43.2,85.9 39.1,93.0 30.9,93.0 26.8,85.9 30.9,78.8 39.1,78.8" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="56.7,31.4 52.6,38.5 44.4,38.5 40.3,31.4 44.4,24.3 52.6,24.3" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="56.7,47.0 52.6,54.1 44.4,54.1 40.3,47.0 44.4,39.9 52.6,39.9" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="56.7,62.6 52.6,69.7 44.4,69.7 40.3,62.6 44.4,55.5 52.6,55.5" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="56.7,78.1 52.6,85.2 44.4,85.2 40.3,78.1 44.4,71.0 52.6,71.0" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="56.7,93.7 52.6,100.8 44.4,100.8 40.3,93.7 44.4,86.6 52.6,86.6" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="70.2,23.6 66.1,30.7 57.9,30.7 53.8,23.6 57.9,16.5 66.1,16.5" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="70.2,39.2 66.1,46.3 57.9,46.3 53.8,39.2 57.9,32.1 66.1,32.1" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="70.2,54.8 66.1,61.9 57.9,61.9 53.8,54.8 57.9,47.7 66.1,47.7" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="70.2,70.4 66.1,77.5 57.9,77.5 53.8,70.4 57.9,63.3 66.1,63.3" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="70.2,85.9 66.1,93.0 57.9,93.0 53.8,85.9 57.9,78.8 66.1,78.8" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="83.7,31.4 79.6,38.5 71.4,38.5 67.3,31.4 71.4,24.3 79.6,24.3" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="83.7,47.0 79.6,54.1 71.4,54.1 67.3,47.0 71.4,39.9 79.6,39.9" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="83.7,62.6 79.6,69.7 71.4,69.7 67.3,62.6 71.4,55.5 79.6,55.5" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="83.7,78.1 79.6,85.2 71.4,85.2 67.3,78.1 71.4,71.0 79.6,71.0" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="83.7,93.7 79.6,100.8 71.4,100.8 67.3,93.7 71.4,86.6 79.6,86.6" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="97.2,23.6 93.1,30.7 84.9,30.7 80.8,23.6 84.9,16.5 93.1,16.5" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="97.2,39.2 93.1,46.3 84.9,46.3 80.8,39.2 84.9,32.1 93.1,32.1" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="97.2,54.8 93.1,61.9 84.9,61.9 80.8,54.8 84.9,47.7 93.1,47.7" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="97.2,70.4 93.1,77.5 84.9,77.5 80.8,70.4 84.9,63.3 93.1,63.3" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="97.2,85.9 93.1,93.0 84.9,93.0 80.8,85.9 84.9,78.8 93.1,78.8" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="97.2,101.5 93.1,108.6 84.9,108.6 80.8,101.5 84.9,94.4 93.1,94.4" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="110.7,31.4 106.6,38.5 98.4,38.5 94.3,31.4 98.4,24.3 106.6,24.3" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="110.7,47.0 106.6,54.1 98.4,54.1 94.3,47.0 98.4,39.9 106.6,39.9" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="110.7,62.6 106.6,69.7 98.4,69.7 94.3,62.6 98.4,55.5 106.6,55.5" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="110.7,78.1 106.6,85.2 98.4,85.2 94.3,78.1 98.4,71.0 106.6,71.0" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="110.7,93.7 106.6,100.8 98.4,100.8 94.3,93.7 98.4,86.6 106.6,86.6" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="124.2,39.2 120.1,46.3 111.9,46.3 107.8,39.2 111.9,32.1 120.1,32.1" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="124.2,54.8 120.1,61.9 111.9,61.9 107.8,54.8 111.9,47.7 120.1,47.7" fill="#2aa198" fill-opacity="0.75" stroke="#2aa198" stroke-width="0.8"/><polygon points="124.2,70.4 120.1,77.5 111.9,77.5 107.8,70.4 111.9,63.3 120.1,63.3" fill="#2aa198" fill-opacity="0.75" stroke="#2aa198" stroke-width="0.8"/><polygon points="124.2,85.9 120.1,93.0 111.9,93.0 107.8,85.9 111.9,78.8 120.1,78.8" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/><polygon points="137.7,31.4 133.6,38.5 125.4,38.5 121.3,31.4 125.4,24.3 133.6,24.3" fill="#2aa198" fill-opacity="0.75" stroke="#2aa198" stroke-width="0.8"/><polygon points="137.7,47.0 133.6,54.1 125.4,54.1 121.3,47.0 125.4,39.9 133.6,39.9" fill="#2aa198" fill-opacity="0.75" stroke="#2aa198" stroke-width="0.8"/><polygon points="137.7,62.6 133.6,69.7 125.4,69.7 121.3,62.6 125.4,55.5 133.6,55.5" fill="#2aa198" fill-opacity="0.75" stroke="#2aa198" stroke-width="0.8"/><polygon points="137.7,78.1 133.6,85.2 125.4,85.2 121.3,78.1 125.4,71.0 133.6,71.0" fill="#2aa198" fill-opacity="0.75" stroke="#2aa198" stroke-width="0.8"/><polygon points="151.2,39.2 147.1,46.3 138.9,46.3 134.8,39.2 138.9,32.1 147.1,32.1" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="151.2,54.8 147.1,61.9 138.9,61.9 134.8,54.8 138.9,47.7 147.1,47.7" fill="#2aa198" fill-opacity="0.75" stroke="#2aa198" stroke-width="0.8"/><polygon points="151.2,70.4 147.1,77.5 138.9,77.5 134.8,70.4 138.9,63.3 147.1,63.3" fill="#2aa198" fill-opacity="0.75" stroke="#2aa198" stroke-width="0.8"/><polygon points="151.2,85.9 147.1,93.0 138.9,93.0 134.8,85.9 138.9,78.8 147.1,78.8" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="164.7,31.4 160.6,38.5 152.4,38.5 148.3,31.4 152.4,24.3 160.6,24.3" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="164.7,47.0 160.6,54.1 152.4,54.1 148.3,47.0 152.4,39.9 160.6,39.9" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="164.7,62.6 160.6,69.7 152.4,69.7 148.3,62.6 152.4,55.5 160.6,55.5" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="164.7,78.1 160.6,85.2 152.4,85.2 148.3,78.1 152.4,71.0 160.6,71.0" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="164.7,93.7 160.6,100.8 152.4,100.8 148.3,93.7 152.4,86.6 160.6,86.6" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="178.2,23.6 174.1,30.7 165.9,30.7 161.8,23.6 165.9,16.5 174.1,16.5" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="178.2,39.2 174.1,46.3 165.9,46.3 161.8,39.2 165.9,32.1 174.1,32.1" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="178.2,54.8 174.1,61.9 165.9,61.9 161.8,54.8 165.9,47.7 174.1,47.7" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="178.2,70.4 174.1,77.5 165.9,77.5 161.8,70.4 165.9,63.3 174.1,63.3" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="178.2,85.9 174.1,93.0 165.9,93.0 161.8,85.9 165.9,78.8 174.1,78.8" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="178.2,101.5 174.1,108.6 165.9,108.6 161.8,101.5 165.9,94.4 174.1,94.4" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="191.7,31.4 187.6,38.5 179.4,38.5 175.3,31.4 179.4,24.3 187.6,24.3" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="191.7,47.0 187.6,54.1 179.4,54.1 175.3,47.0 179.4,39.9 187.6,39.9" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="191.7,62.6 187.6,69.7 179.4,69.7 175.3,62.6 179.4,55.5 187.6,55.5" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="191.7,78.1 187.6,85.2 179.4,85.2 175.3,78.1 179.4,71.0 187.6,71.0" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="191.7,93.7 187.6,100.8 179.4,100.8 175.3,93.7 179.4,86.6 187.6,86.6" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="205.2,23.6 201.1,30.7 192.9,30.7 188.8,23.6 192.9,16.5 201.1,16.5" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="205.2,39.2 201.1,46.3 192.9,46.3 188.8,39.2 192.9,32.1 201.1,32.1" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="205.2,54.8 201.1,61.9 192.9,61.9 188.8,54.8 192.9,47.7 201.1,47.7" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="205.2,70.4 201.1,77.5 192.9,77.5 188.8,70.4 192.9,63.3 201.1,63.3" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="205.2,85.9 201.1,93.0 192.9,93.0 188.8,85.9 192.9,78.8 201.1,78.8" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="218.7,31.4 214.6,38.5 206.4,38.5 202.3,31.4 206.4,24.3 214.6,24.3" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="218.7,47.0 214.6,54.1 206.4,54.1 202.3,47.0 206.4,39.9 214.6,39.9" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="218.7,62.6 214.6,69.7 206.4,69.7 202.3,62.6 206.4,55.5 214.6,55.5" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="218.7,78.1 214.6,85.2 206.4,85.2 202.3,78.1 206.4,71.0 214.6,71.0" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="218.7,93.7 214.6,100.8 206.4,100.8 202.3,93.7 206.4,86.6 214.6,86.6" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="232.2,39.2 228.1,46.3 219.9,46.3 215.8,39.2 219.9,32.1 228.1,32.1" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="232.2,54.8 228.1,61.9 219.9,61.9 215.8,54.8 219.9,47.7 228.1,47.7" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="232.2,70.4 228.1,77.5 219.9,77.5 215.8,70.4 219.9,63.3 228.1,63.3" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="232.2,85.9 228.1,93.0 219.9,93.0 215.8,85.9 219.9,78.8 228.1,78.8" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="245.7,47.0 241.6,54.1 233.4,54.1 229.3,47.0 233.4,39.9 241.6,39.9" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="245.7,62.6 241.6,69.7 233.4,69.7 229.3,62.6 233.4,55.5 241.6,55.5" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/><polygon points="245.7,78.1 241.6,85.2 233.4,85.2 229.3,78.1 233.4,71.0 241.6,71.0" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/>
+        <polygon points="5,108 1,115 -7,115 -11,108 -7,101 1,101" fill="#268bd2" fill-opacity="0.55" stroke="#268bd2" stroke-width="0.8"/>
+        <text x="8" y="113" font-size="8" fill="#586e75" font-family="sans-serif">NP only</text>
+        <polygon points="72,108 68,115 60,115 56,108 60,101 68,101" fill="#859900" fill-opacity="0.55" stroke="#859900" stroke-width="0.8"/>
+        <text x="75" y="113" font-size="8" fill="#586e75" font-family="sans-serif">WR only</text>
+        <polygon points="139,108 135,115 127,115 123,108 127,101 135,101" fill="#2aa198" fill-opacity="0.75" stroke="#2aa198" stroke-width="0.8"/>
+        <text x="142" y="113" font-size="8" fill="#586e75" font-family="sans-serif">both &rarr; count once</text>
+      </svg>
+      <p>Area = COUNT(DISTINCT cell_id) &times; cell_area<br><strong class="ok">Replaces ST_* for area, join, intersection, buffer</strong></p>
+    </div>
+  </div>
+  <p class="subtitle" style="margin-top:6px;">All spatial ops become integer hash joins &mdash; O(n), no geometry library needed</p>
+</section>
+
+<!-- Slide 16: Hive partitioning -->
+<section>
+  <h2>Hive partitioning &amp; why it matters</h2>
+  <div class="columns" style="font-size: 0.7em;">
+    <div class="col">
+      <h3>The layout</h3>
+      <pre><code class="language-text" data-trim>dataset/hex/
+  h0=801fff.../data_0.parquet   ← North America
+  h0=802fff.../data_0.parquet   ← Europe
+  h0=803fff.../data_0.parquet   ← Asia
+  ...</code></pre>
+      <p><code>h0</code> = coarsest H3 cell = geographic region</p>
+    </div>
+    <div class="col">
+      <h3>Partition pruning</h3>
+      <pre><code class="language-sql" data-trim>-- "Show me California data"
+-- DuckDB reads ONLY the h0 partitions
+-- that overlap California
+-- → skips 90%+ of S3 reads</code></pre>
+      <p class="ok">5&ndash;20&times; speedup on spatial queries</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 17: STAC as registry -->
+<section>
+  <h2>STAC: the metadata registry</h2>
+  <div class="vflow">
+    <div class="box" style="width: 280px; border-color: #b5890088;">
+      <strong>Root Catalog</strong><br>
+      <span style="font-size:0.85em; color:#93a1a1;">Links to sub-catalogs</span>
+    </div>
+    <div class="arrow-down">&darr;</div>
+    <div style="display: flex; gap: 16px;">
+      <div class="box">biodiversity</div>
+      <div class="box">carbon</div>
+      <div class="box">census</div>
+      <div class="box">...</div>
+    </div>
+    <div class="arrow-down">&darr;</div>
+    <div class="box highlight" style="width: 400px;">
+      <strong>Collection</strong><br>
+      <span style="font-size:0.85em;">Assets (parquet, PMTiles, COG, hex)<br>
+      table:columns &middot; vector:layers &middot; descriptions</span>
+    </div>
+  </div>
+  <p class="subtitle">Every dataset gets a STAC collection with full schema metadata</p>
+</section>
+
+<!-- Slide 18: STAC metadata anatomy -->
+<section>
+  <h2>Schema drives the agent</h2>
+  <pre><code class="language-json" data-trim data-line-numbers="3-6|7-12">{
+  "table:columns": [
+    {
+      "name": "gap_code",
+      "type": "int32",
+      "description": "GAP Status: 1=managed, 2=biodiversity, 3=multiple-use, 4=unprotected"
+    },
+    {
+      "name": "own_type",
+      "type": "utf8",
+      "description": "Owner type. Values: FED, STAT, LOC, JNT, TRIB, PVT, UNK, NGO"
+    }
+  ]
+}</code></pre>
+  <p style="font-size: 0.7em;">This metadata flows into the LLM's system prompt via<br>
+  <code>catalog.generatePromptCatalog()</code></p>
+  <p class="accent" style="font-size: 0.8em;">"The better the metadata, the smarter the agent"</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- MCP DATA SERVER -->
+<!-- ============================================================ -->
+
+<!-- Slide 19: Section title -->
+<section class="section-title">
+  <span class="section-num">II</span>
+  <h2>The MCP Data Server</h2>
+  <p class="subtitle">A universal SQL interface for LLMs</p>
+</section>
+
+<!-- Slide 20: MCP protocol -->
+<section>
+  <h2>Model Context Protocol</h2>
+  <p style="font-size: 0.75em;">A standardized way for LLMs to call external tools</p>
+  <div class="diagram" style="margin-top: 20px;">
+    <div class="box" style="min-width: 80px;">LLM</div>
+    <span class="arrow">&harr;</span>
+    <div class="box" style="min-width: 110px;">MCP Client</div>
+    <span class="arrow">&harr;</span>
+    <div class="box highlight" style="min-width: 120px;">MCP Server</div>
+    <span class="arrow">&harr;</span>
+    <div class="box" style="min-width: 80px;">DuckDB</div>
+    <span class="arrow">&harr;</span>
+    <div class="box" style="min-width: 110px;">S3 Parquet</div>
+  </div>
+  <p style="font-size: 0.65em; color: #93a1a1; margin-top: 20px;">
+    Not tied to geo-agent &mdash; any MCP-compatible client can connect
+  </p>
+</section>
+
+<!-- Slide 21: The four tools -->
+<section>
+  <h2>Four MCP tools</h2>
+  <div class="tool-grid" style="grid-template-columns: 1fr 1fr; max-width: 700px; margin: 15px auto;">
+    <div class="tool">
+      <code>browse_stac_catalog</code><br>
+      Discover available datasets
+    </div>
+    <div class="tool">
+      <code>get_stac_details</code><br>
+      S3 paths + column schemas
+    </div>
+    <div class="tool" style="grid-column: span 2;">
+      <code>query(sql)</code><br>
+      Execute DuckDB SQL against S3 parquet &mdash; H3 + httpfs extensions loaded
+    </div>
+    <div class="tool" style="grid-column: span 2; border-left-color: #b5890088;">
+      <code>register_hex_tiles</code><br>
+      Materialize H3 tile pyramids for MapLibre visualization
+    </div>
+  </div>
+  <pre style="margin-top: 10px;"><code class="language-sql" data-trim>-- Example: area of GAP 1+2 protected lands by state
+SELECT state_name,
+       APPROX_COUNT_DISTINCT(h8) * 0.7373 AS area_km2
+FROM read_parquet('s3://public-biodiversity/padus/hex/h0=*/data_0.parquet')
+WHERE gap_code IN (1, 2)
+GROUP BY state_name ORDER BY area_km2 DESC</code></pre>
+</section>
+
+<!-- Slide 22: DuckDB on H3 -->
+<section>
+  <h2>DuckDB on H3-indexed parquet</h2>
+  <div class="columns" style="font-size: 0.7em;">
+    <div class="col">
+      <h3>Per-request design</h3>
+      <ul>
+        <li>Fresh <code>:memory:</code> connection each request</li>
+        <li>Completely stateless &mdash; any pod can serve</li>
+        <li>Extensions: spatial, h3, httpfs</li>
+        <li>S3 credentials scoped per-request</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Query rules (injected into tool description)</h3>
+      <ul>
+        <li>Always include <code>h0</code> in joins</li>
+        <li>Use <code>DISTINCT</code> for vector overlaps</li>
+        <li>Use <code>GROUP BY</code> + agg for raster pixels</li>
+        <li>Never hardcode S3 paths &mdash; call <code>get_stac_details</code> first</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 23: Many clients -->
+<section>
+  <h2>One server, many clients</h2>
+  <div class="client-row">
+    <div class="client">
+      <div class="icon">&#x1F30D;</div>
+      <strong>geo-agent</strong><br>Browser
+    </div>
+    <div class="client">
+      <div class="icon">&#x1F4D3;</div>
+      <strong>Jupyter</strong><br>jupyter-geoagent
+    </div>
+    <div class="client">
+      <div class="icon">&#x1F4DD;</div>
+      <strong>VS Code</strong><br>mcp.json
+    </div>
+    <div class="client">
+      <div class="icon">&#x1F916;</div>
+      <strong>Claude Desktop</strong><br>config.json
+    </div>
+    <div class="client">
+      <div class="icon">&#x1F517;</div>
+      <strong>LangChain</strong><br>mcp-adapters
+    </div>
+    <div class="client">
+      <div class="icon">&#x1F40D;</div>
+      <strong>Python</strong><br>scripts
+    </div>
+  </div>
+  <p class="subtitle">Same DuckDB + STAC backend &mdash; different interaction surfaces</p>
+</section>
+
+<!-- Slide 24: GPU experiment -->
+<section>
+  <h2>The GPU experiment</h2>
+  <p style="font-size: 0.65em; color: #93a1a1;">mcp-gpu-data-server: RAPIDS cuDF + kvikio S3 reads</p>
+  <table>
+    <thead>
+      <tr><th>Query</th><th>Dataset</th><th>GPU (cuDF)</th><th>CPU (DuckDB)</th><th>Winner</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Simple filter</td><td>IUCN (22M rows)</td><td>14.1s</td><td class="ok">9.0s</td><td>CPU 1.6&times;</td></tr>
+      <tr><td>3-way join</td><td>IUCN</td><td>19.7s</td><td class="ok">11.1s</td><td>CPU 1.8&times;</td></tr>
+      <tr><td>Agg 28 partitions</td><td>Carbon (3.2 GiB)</td><td>62.7s</td><td class="ok">18.5s</td><td>CPU 3.4&times;</td></tr>
+      <tr><td>Cross-dataset</td><td>Carbon &times; IUCN</td><td>60.9s</td><td class="ok">27.8s</td><td>CPU 2.2&times;</td></tr>
+      <tr><td>Cross-dataset</td><td>Carbon &times; WDPA</td><td>53.2s</td><td class="ok">22.1s</td><td>CPU 2.4&times;</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size: 0.7em; margin-top: 10px;">
+    kvikio reads S3 at <span class="accent">6.25 Gbps</span> vs 0.97 Gbps (Polars) &mdash;
+    but <span class="warn">DuckDB still wins 2&ndash;4&times;</span>
+  </p>
+  <p class="subtitle">DuckDB leverages HTTP range requests, parquet row-group pruning, and dynamic partition pruning<br>to read only the bytes it needs &mdash; raw bandwidth can't compete with reading less data</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- AGENT ARCHITECTURE -->
+<!-- ============================================================ -->
+
+<!-- Slide 25: Section title -->
+<section class="section-title">
+  <span class="section-num">III</span>
+  <h2>The Agent Architecture</h2>
+  <p class="subtitle">geo-agent: modules, tools, and the agentic loop</p>
+</section>
+
+<!-- Slide 26: Module diagram -->
+<section>
+  <h2>Module architecture</h2>
+  <div class="vflow">
+    <div class="box highlight" style="width: 380px;">
+      <strong>main.js</strong> &mdash; Bootstrap &amp; orchestration
+    </div>
+    <div class="arrow-down">&darr;</div>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+      <div class="box">DatasetCatalog<br><span style="color:#93a1a1; font-size:0.85em;">STAC &rarr; records</span></div>
+      <div class="box">MapManager<br><span style="color:#93a1a1; font-size:0.85em;">MapLibre GL JS</span></div>
+      <div class="box">MCPClient<br><span style="color:#93a1a1; font-size:0.85em;">HTTP transport</span></div>
+    </div>
+    <div class="arrow-down">&darr;</div>
+    <div class="box" style="width: 280px;">
+      <strong>ToolRegistry</strong><br>
+      <span style="font-size:0.85em; color:#93a1a1;">local + remote dispatch</span>
+    </div>
+    <div class="arrow-down">&darr;</div>
+    <div style="display: flex; gap: 12px;">
+      <div class="box highlight">Agent<br><span style="color:#93a1a1; font-size:0.85em;">LLM loop</span></div>
+      <div class="box">ChatUI<br><span style="color:#93a1a1; font-size:0.85em;">Rendering</span></div>
+    </div>
+  </div>
+  <p class="subtitle">Config &rarr; STAC &rarr; Map &rarr; MCP &rarr; Tools &rarr; Agent &rarr; UI</p>
+</section>
+
+<!-- Slide 27: System prompt construction -->
+<section>
+  <h2>System prompt construction</h2>
+  <div class="vflow" style="gap: 8px;">
+    <div class="box" style="width: 360px; border-color:#b5890088;">
+      <strong>system-prompt.md</strong><br>
+      <span style="color:#93a1a1; font-size:0.85em;">App-provided personality &amp; instructions</span>
+    </div>
+    <div style="font-size: 0.7em; color: #268bd288;">+</div>
+    <div class="box" style="width: 360px; border-color:#85990088;">
+      <strong>catalog.generatePromptCatalog()</strong><br>
+      <span style="color:#93a1a1; font-size:0.85em;">All datasets, columns, parquet paths from STAC</span>
+    </div>
+    <div style="font-size: 0.7em; color: #268bd288;">+</div>
+    <div class="box" style="width: 360px; border-color:#dc322f88;">
+      <strong>MCP geospatial-analyst prompt</strong><br>
+      <span style="color:#93a1a1; font-size:0.85em;">Query rules, H3 patterns, persona</span>
+    </div>
+    <div class="arrow-down">&darr;</div>
+    <div class="box highlight" style="width: 360px;">
+      <strong>Complete system prompt</strong><br>
+      <span style="color:#93a1a1; font-size:0.85em;">Agent "knows" every column &amp; dataset</span>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 28: Two tool tracks -->
+<section>
+  <h2>Two tool tracks</h2>
+  <div class="columns" style="font-size: 0.65em;">
+    <div class="col">
+      <h3 style="color:#859900;">Local tools <span style="font-size:0.7em; color:#93a1a1;">(auto-approved)</span></h3>
+      <div class="tool-grid" style="grid-template-columns: 1fr; font-size: 1em;">
+        <div class="tool"><code>show_layer</code> / <code>hide_layer</code></div>
+        <div class="tool"><code>set_filter</code> / <code>clear_filter</code> / <code>reset_filter</code></div>
+        <div class="tool"><code>set_style</code> / <code>reset_style</code></div>
+        <div class="tool"><code>fly_to</code></div>
+        <div class="tool"><code>get_map_state</code></div>
+        <div class="tool"><code>list_datasets</code> / <code>get_dataset_details</code></div>
+      </div>
+      <p style="margin-top: 8px;">Instant &middot; runs in browser</p>
+    </div>
+    <div class="col">
+      <h3 style="color:#dc322f;">Remote tools <span style="font-size:0.7em; color:#93a1a1;">(user-approved)</span></h3>
+      <div class="tool-grid" style="grid-template-columns: 1fr; font-size: 1em;">
+        <div class="tool remote"><code>query(sql)</code><br>DuckDB via MCP</div>
+        <div class="tool remote"><code>browse_stac_catalog</code></div>
+        <div class="tool remote"><code>get_stac_details</code></div>
+      </div>
+      <p style="margin-top: 8px;">Requires approval &middot; HTTP to MCP server</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 29: The agentic loop -->
+<section>
+  <h2>The agentic loop</h2>
+  <div class="diagram" style="flex-wrap: nowrap; gap: 8px; font-size: 0.85em;">
+    <div class="box" style="min-width:90px;">User<br>message</div>
+    <span class="arrow">&rarr;</span>
+    <div class="box highlight" style="min-width:60px;">LLM</div>
+    <span class="arrow">&rarr;</span>
+    <div class="box" style="min-width:90px;">tool_calls?</div>
+    <span class="arrow">&rarr;</span>
+    <div class="box" style="min-width:80px;">Execute<br>tools</div>
+    <span class="arrow">&rarr;</span>
+    <div class="box" style="min-width:80px;">Append<br>results</div>
+    <span class="arrow" style="font-size: 0.9em;">&circlearrowleft;</span>
+  </div>
+  <div style="font-size: 0.65em; margin-top: 20px; color: #93a1a1;">
+    <p>Loops until LLM responds with text (no tool calls) or hits max 20 iterations</p>
+    <p>Last 12 messages in context &middot; Tool results capped at 4K chars</p>
+    <p>Turn-local messages: tool calls &amp; results are ephemeral per turn</p>
+  </div>
+</section>
+
+<!-- Slide 30: Tool proposal UX -->
+<section>
+  <h2>The approval flow</h2>
+  <div class="approval-mock">
+    <div class="reasoning">
+      I'll query the PAD-US dataset to rank states by the fraction of their area that is GAP status 1 or 2 (the strongest protection levels).
+    </div>
+    <details open>
+      <summary>Details: query</summary>
+      <pre style="margin: 8px 0; font-size: 0.95em;"><code class="language-sql">SELECT state_name,
+  APPROX_COUNT_DISTINCT(h8) * 0.7373 AS protected_km2,
+  total_km2,
+  ROUND(protected_km2 / total_km2 * 100, 1) AS pct
+FROM read_parquet('s3://...')
+WHERE gap_code IN (1, 2)
+GROUP BY state_name
+ORDER BY pct DESC LIMIT 10</code></pre>
+    </details>
+    <div class="buttons">
+      <div class="btn btn-approve">Approve</div>
+      <div class="btn btn-cancel">Cancel</div>
+    </div>
+  </div>
+  <p class="subtitle">User sees the agent's reasoning + full SQL before execution</p>
+</section>
+
+<!-- Slide 31: Config-driven everything -->
+<section>
+  <h2>Config-driven everything</h2>
+  <div style="font-size: 0.7em;">
+    <table>
+      <thead>
+        <tr><th>What</th><th>Source</th><th>Hardcoded?</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>S3 data paths</td><td>Agent calls <code>get_stac_details()</code></td><td class="ok">Never</td></tr>
+        <tr><td>Column schemas</td><td>STAC <code>table:columns</code></td><td class="ok">Never</td></tr>
+        <tr><td>Map styles</td><td><code>layers-input.json</code> defaults</td><td class="ok">Never</td></tr>
+        <tr><td>Filters</td><td>MapLibre expressions, dynamic</td><td class="ok">Never</td></tr>
+        <tr><td>LLM models</td><td><code>config.json</code> (runtime injected)</td><td class="ok">Never</td></tr>
+        <tr><td>System prompt</td><td>STAC + MCP + app markdown</td><td class="ok">Never</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="subtitle">Add a dataset to STAC, reference it in config &mdash; the agent can query it immediately</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- LLM PROXY + TRAINING -->
+<!-- ============================================================ -->
+
+<!-- Slide 32: Section title -->
+<section class="section-title">
+  <span class="section-num">IV</span>
+  <h2>The Training Loop</h2>
+  <p class="subtitle">Observability, logging, and continuous improvement</p>
+</section>
+
+<!-- Slide 33: open-llm-proxy -->
+<section>
+  <h2>open-llm-proxy</h2>
+  <div class="diagram">
+    <div class="box">Browser<br><span style="color:#93a1a1; font-size:0.85em;">(geo-agent)</span></div>
+    <span class="arrow">&rarr;</span>
+    <div class="box highlight" style="min-width: 180px;">
+      <strong>LLM Proxy</strong><br>
+      <span style="font-size:0.85em; color:#93a1a1;">OpenAI-compatible<br>/v1/chat/completions</span>
+    </div>
+    <span class="arrow">&rarr;</span>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <div class="box" style="min-width: 100px;">NRP</div>
+      <div class="box" style="min-width: 100px;">OpenRouter</div>
+      <div class="box" style="min-width: 100px;">Nimbus</div>
+    </div>
+  </div>
+  <div style="font-size: 0.65em; margin-top: 15px;">
+    <ul>
+      <li><strong>Multi-provider routing</strong> &mdash; model name determines backend</li>
+      <li><strong>Credential isolation</strong> &mdash; browser sends PROXY_KEY, never sees provider keys</li>
+      <li><strong>CORS handling</strong> &mdash; browser-based apps work without backend</li>
+    </ul>
+  </div>
+</section>
+
+<!-- Slide 34: Structured logging -->
+<section>
+  <h2>Structured logging to S3</h2>
+  <p style="font-size: 0.7em; color:#93a1a1;">Every agentic turn is observable</p>
+  <div class="columns" style="font-size: 0.65em;">
+    <div class="col">
+      <h3 style="color:#859900;">Request logged</h3>
+      <ul>
+        <li><code>user_question</code></li>
+        <li><code>message_count</code></li>
+        <li><code>tool_results_this_turn</code></li>
+        <li><code>model</code>, <code>origin</code></li>
+        <li><code>timestamp</code></li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3 style="color:#dc322f;">Response logged</h3>
+      <ul>
+        <li><code>latency_ms</code>, <code>tokens</code></li>
+        <li><code>tool_calls</code> (with full SQL)</li>
+        <li><code>content_preview</code></li>
+        <li><code>error</code> (if failed)</li>
+        <li>Same <code>request_id</code> links pair</li>
+      </ul>
+    </div>
+  </div>
+  <pre style="margin-top: 10px;"><code class="language-text" data-trim>s3://logs-biodiversity/2026-04-07/14-23-01-pid42.jsonl
+s3://logs-biodiversity/2026-04-07/14-24-15-pid42.jsonl
+...</code></pre>
+</section>
+
+<!-- Slide 35: A log entry -->
+<section>
+  <h2>A log entry up close</h2>
+  <pre><code class="language-json" data-trim data-line-numbers="2-4|5-8|9">{
+  "type": "response",
+  "request_id": "abc-123",
+  "origin": "https://padus.nrp-nautilus.io",
+  "latency_ms": 2340,
+  "tokens": { "prompt": 4200, "completion": 380 },
+  "tool_calls": [
+    { "name": "query", "arguments": "SELECT state_name, ..." }
+  ],
+  "content_preview": "Here are the top 10 states by protected area..."
+}</code></pre>
+  <p style="font-size: 0.7em; margin: 6px 0;">
+    Query logs with&hellip; DuckDB
+  </p>
+  <pre><code class="language-sql" data-trim>SELECT * FROM read_ndjson_auto('s3://logs-biodiversity/2026-04-07/*.jsonl')
+WHERE origin = 'https://padus.nrp-nautilus.io'</code></pre>
+</section>
+
+<!-- Slide 36: Training workflow -->
+<section>
+  <h2>The training workflow</h2>
+  <div class="vflow" style="gap: 8px;">
+    <div class="box" style="width: 350px;">
+      <strong>1. Query logs</strong><br>
+      <span style="color:#93a1a1; font-size:0.85em;">DuckDB over S3 JSONL &mdash; filter by origin, date</span>
+    </div>
+    <div class="arrow-down">&darr;</div>
+    <div class="box" style="width: 350px;">
+      <strong>2. Reconstruct sessions</strong><br>
+      <span style="color:#93a1a1; font-size:0.85em;">Group by user_question + timestamp</span>
+    </div>
+    <div class="arrow-down">&darr;</div>
+    <div class="box" style="width: 350px;">
+      <strong>3. Classify failures</strong><br>
+      <span style="color:#93a1a1; font-size:0.85em;">STAC metadata? MCP tool? Model behavior?</span>
+    </div>
+    <div class="arrow-down">&darr;</div>
+    <div class="box highlight" style="width: 350px;">
+      <strong>4. Fix at the right layer</strong><br>
+      <span style="color:#93a1a1; font-size:0.85em;">Metadata &middot; tool descriptions &middot; system prompts</span>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 37: Before/after -->
+<section>
+  <h2>The feedback loop in action</h2>
+  <div class="columns" style="font-size: 0.65em;">
+    <div class="col" style="border: 1px solid #dc322f33; border-radius: 10px; padding: 16px;">
+      <h3 style="color:#dc322f;">Before</h3>
+      <p>Agent asked: <em>"What fraction is GAP 1?"</em></p>
+      <p>Agent generates: <code>WHERE gap_status = 1</code></p>
+      <p class="warn">Column doesn't exist &rarr; query fails</p>
+      <p style="color:#93a1a1;">Logs show this pattern repeated across 12 sessions</p>
+    </div>
+    <div class="col" style="border: 1px solid #85990033; border-radius: 10px; padding: 16px;">
+      <h3 style="color:#859900;">After</h3>
+      <p><strong>Fix:</strong> Add column description to STAC metadata</p>
+      <pre style="font-size: 0.9em;"><code class="language-json">{
+  "name": "gap_code",
+  "type": "int32",
+  "description": "GAP Status:
+    1=managed, 2=biodiversity..."
+}</code></pre>
+      <p class="ok">Agent now uses <code>WHERE gap_code = 1</code></p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 38: The virtuous cycle -->
+<section>
+  <h2>The virtuous cycle</h2>
+  <div class="cycle">
+    <div class="node" style="border-color:#268bd2;">
+      <strong>geo-agent</strong><br>Users ask questions
+    </div>
+    <span class="curve-arrow">&rarr;</span>
+    <div class="node" style="border-color:#b58900;">
+      <strong>Proxy logs</strong><br>Every turn captured
+    </div>
+    <span class="curve-arrow">&rarr;</span>
+    <div class="node" style="border-color:#dc322f;">
+      <strong>Training<br>analysis</strong><br>Classify failures
+    </div>
+    <span class="curve-arrow">&rarr;</span>
+    <div class="node" style="border-color:#859900;">
+      <strong>Improve</strong><br>STAC &middot; MCP<br>prompts
+    </div>
+    <span class="curve-arrow">&rarr;</span>
+  </div>
+  <p class="subtitle">Continuous &mdash; not one-shot. Every deployment generates training signal.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- DEPLOYMENT & REUSE -->
+<!-- ============================================================ -->
+
+<!-- Slide 39: Section title -->
+<section class="section-title">
+  <span class="section-num">V</span>
+  <h2>Deployment &amp; Reuse</h2>
+  <p class="subtitle">From one library to many apps</p>
+</section>
+
+<!-- Slide 40: CDN architecture -->
+<section>
+  <h2>CDN architecture</h2>
+  <div class="vflow" style="gap: 10px;">
+    <div class="box highlight" style="width: 340px;">
+      <strong>boettiger-lab/geo-agent</strong><br>
+      <span style="color:#93a1a1; font-size:0.85em;">Core library on GitHub</span>
+    </div>
+    <div class="arrow-down">&darr; <span style="font-size:0.6em; color:#93a1a1;">jsDelivr CDN</span></div>
+    <div style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;">
+      <div class="box">App A<br><span style="color:#93a1a1; font-size:0.85em;">Protected areas</span></div>
+      <div class="box">App B<br><span style="color:#93a1a1; font-size:0.85em;">Carbon stocks</span></div>
+      <div class="box">App C<br><span style="color:#93a1a1; font-size:0.85em;">Biodiversity</span></div>
+      <div class="box">App D<br><span style="color:#93a1a1; font-size:0.85em;">Census data</span></div>
+    </div>
+  </div>
+  <p style="font-size: 0.65em; margin-top: 15px;">
+    Merge to <code>main</code> &rarr; purge CDN cache &rarr; <strong>all apps updated instantly</strong>
+  </p>
+  <p class="subtitle">Each app: static HTML. Different datasets, branding, prompts. Same core.</p>
+</section>
+
+<!-- Slide 41: Deployment patterns -->
+<section>
+  <h2>Deployment patterns</h2>
+  <div class="diagram" style="gap: 16px;">
+    <div class="box" style="min-width: 200px;">
+      <strong style="color:#859900;">GitHub Pages</strong><br>
+      <span style="font-size:0.85em; color:#93a1a1;">Static HTML<br>User provides API key<br>in-browser</span>
+    </div>
+    <div class="box" style="min-width: 200px;">
+      <strong style="color:#b58900;">HF Spaces</strong><br>
+      <span style="font-size:0.85em; color:#93a1a1;">Mount config.json<br>as secret file</span>
+    </div>
+    <div class="box" style="min-width: 200px;">
+      <strong style="color:#dc322f;">Kubernetes</strong><br>
+      <span style="font-size:0.85em; color:#93a1a1;">Init container injects<br>config from ConfigMap</span>
+    </div>
+  </div>
+  <p class="subtitle">All patterns: zero JavaScript to write</p>
+</section>
+
+<!-- Slide 42: Template -->
+<section>
+  <h2>New app in 5 minutes</h2>
+  <div style="font-size: 0.7em;">
+    <ol>
+      <li>Fork <code>boettiger-lab/geo-agent-template</code></li>
+      <li>Edit <code>layers-input.json</code> &mdash; pick your STAC collections</li>
+      <li>Edit <code>system-prompt.md</code> &mdash; describe the AI persona</li>
+      <li>Deploy (GitHub Pages / HF Spaces / k8s)</li>
+    </ol>
+  </div>
+  <div class="screenshot-placeholder" style="padding: 20px;">
+    geo-agent-template repo &rarr; live app demo
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CLOSE -->
+<!-- ============================================================ -->
+
+<!-- Slide 43: Design principles -->
+<section>
+  <h2>Design principles</h2>
+  <div class="principles">
+    <div class="p-item">
+      <strong>STAC as single source of truth</strong><br>
+      Metadata, schemas, and asset paths all live in the catalog
+    </div>
+    <div class="p-item">
+      <strong>Config over code</strong><br>
+      Zero JavaScript for app builders &mdash; just JSON + Markdown
+    </div>
+    <div class="p-item">
+      <strong>MCP as universal interface</strong><br>
+      Same data server powers browsers, notebooks, CLIs, and agents
+    </div>
+    <div class="p-item">
+      <strong>The virtuous training loop</strong><br>
+      Every deployment generates signal to improve metadata &amp; prompts
+    </div>
+    <div class="p-item">
+      <strong>H3 + hive partitioning</strong><br>
+      Fast queries at any scale &mdash; partition pruning skips continents
+    </div>
+    <div class="p-item">
+      <strong>Separation of concerns</strong><br>
+      Data pipeline &middot; MCP server &middot; Agent frontend &middot; LLM proxy &mdash; independent repos
+    </div>
+  </div>
+</section>
+
+<!-- Slide 44: Links -->
+<section>
+  <h2>Links</h2>
+  <div style="font-size: 0.65em; text-align: left; max-width: 600px; margin: 0 auto;">
+    <table>
+      <tbody>
+        <tr><td><strong>geo-agent</strong></td><td>github.com/boettiger-lab/geo-agent</td></tr>
+        <tr><td><strong>MCP server</strong></td><td>github.com/boettiger-lab/mcp-data-server</td></tr>
+        <tr><td><strong>Data workflows</strong></td><td>github.com/boettiger-lab/data-workflows</td></tr>
+        <tr><td><strong>LLM proxy</strong></td><td>github.com/boettiger-lab/open-llm-proxy</td></tr>
+        <tr><td><strong>App template</strong></td><td>github.com/boettiger-lab/geo-agent-template</td></tr>
+        <tr><td><strong>Docs</strong></td><td>boettiger-lab.github.io/geo-agent</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <br>
+  <p style="font-size: 1.2em;">Questions?</p>
+</section>
+
+</div><!-- /.slides -->
+</div><!-- /.reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    hashOneBasedIndex: true,
+    slideNumber: 'c/t',
+    width: 1200,
+    height: 700,
+    margin: 0.06,
+    transition: 'fade',
+    transitionSpeed: 'fast',
+    plugins: [RevealHighlight]
+  });
+</script>
+</body>
+</html>
