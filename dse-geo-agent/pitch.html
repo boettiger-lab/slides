@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>geo-agent</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/solarized.css">
+  <style>
+    :root {
+      --r-background-color: #fdf6e3;
+      --r-main-color: #586e75;
+      --r-heading-color: #268bd2;
+      --r-link-color: #268bd2;
+      --r-selection-background-color: #268bd233;
+    }
+    .reveal h1, .reveal h2, .reveal h3 { text-transform: none; font-weight: 500; }
+    .reveal h1 { font-size: 2.4em; letter-spacing: -0.02em; }
+    .reveal h2 { font-size: 1.5em; }
+    .reveal .subtitle { color: #93a1a1; font-style: italic; font-size: 0.7em; margin-top: 4px; }
+    .reveal .accent { color: #268bd2; }
+    .reveal .muted { color: #93a1a1; }
+    .reveal a { color: #268bd2; }
+
+    .reveal .lede {
+      font-size: 0.75em;
+      max-width: 780px;
+      margin: 12px auto;
+      line-height: 1.5;
+      color: #586e75;
+    }
+
+    .frame {
+      border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      max-width: 90%;
+      max-height: 70vh;
+      object-fit: contain;
+    }
+
+    .pair {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 36px;
+      align-items: center;
+      text-align: left;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .pair img { width: 100%; border-radius: 10px; box-shadow: 0 4px 18px rgba(0,0,0,0.1); }
+    .pair h2 { margin-top: 0; }
+    .pair p { font-size: 0.7em; line-height: 1.55; color: #586e75; }
+    .pair .meta { font-size: 0.55em; color: #93a1a1; margin-top: 14px; }
+    .pair .meta a { color: #268bd2; }
+
+    .uses {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px 28px;
+      max-width: 1000px;
+      margin: 18px auto 0;
+      text-align: left;
+    }
+    .uses .item {
+      padding: 14px 18px;
+      border-left: 3px solid #268bd244;
+      background: #eee8d5;
+      border-radius: 0 8px 8px 0;
+    }
+    .uses .item h3 {
+      margin: 0 0 4px 0;
+      color: #268bd2;
+      font-size: 0.85em;
+    }
+    .uses .item p {
+      margin: 0;
+      font-size: 0.6em;
+      line-height: 1.45;
+      color: #586e75;
+    }
+    .uses .item .who {
+      display: block;
+      margin-top: 6px;
+      color: #93a1a1;
+      font-size: 0.85em;
+      font-style: italic;
+    }
+
+    .partners {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px 14px;
+      max-width: 900px;
+      margin: 24px auto 0;
+    }
+    .partners .p {
+      background: #eee8d5;
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 0.6em;
+      color: #586e75;
+      border: 1px solid #93a1a155;
+    }
+
+    .links {
+      font-size: 0.65em;
+      color: #586e75;
+      max-width: 600px;
+      margin: 20px auto 0;
+      line-height: 1.8;
+    }
+    .links a { color: #268bd2; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- 1. Title -->
+<section>
+  <h1 class="accent">geo-agent</h1>
+  <p style="font-size: 0.95em; color: #2aa198; margin-top: 4px;">A conversation interface for geospatial data</p>
+  <br>
+  <p style="font-size: 0.6em; color: #93a1a1;">Carl Boettiger &middot; DSE</p>
+</section>
+
+<!-- 2. Premise -->
+<section>
+  <h2>Ask the map.</h2>
+  <img src="high-seas.png" alt="geo-agent showing an interactive map with a chat panel" class="frame" style="margin-top: 18px;">
+</section>
+
+<!-- 3. Wolf map demo -->
+<section data-background-image="wolf-map-2.gif" data-background-size="contain" data-background-color="#fdf6e3">
+</section>
+
+<!-- 4. Use case: California Wolves -->
+<section>
+  <div class="pair">
+    <img src="wolf-puppy.png" alt="California gray wolf pup">
+    <div>
+      <h2>The wolves of California</h2>
+      <p>
+        Gray wolves are returning to California after nearly a century.
+        A public dashboard lets residents follow pack territories,
+        ask where wolves have been seen, and explore the habitat
+        that's drawing them back.
+      </p>
+      <p class="meta">
+        With the California Wolf Project<br>
+        <a href="https://californiawolfproject.berkeley.edu/">californiawolfproject.berkeley.edu</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Use case: High Seas -->
+<section>
+  <div class="pair">
+    <div>
+      <h2>The high seas</h2>
+      <p>
+        Two-thirds of the ocean lies beyond any nation's jurisdiction.
+        The UN's new high-seas treaty creates the first framework for
+        protecting biodiversity there. Negotiators use the map to
+        compare candidate areas across fishing pressure, biodiversity,
+        and climate refugia.
+      </p>
+      <p class="meta">
+        with the Benioff Ocean Science Laboratory (BOSL)
+      </p>
+    </div>
+    <img src="high-seas-hex.png" alt="High seas analysis with hexagonal aggregation">
+  </div>
+</section>
+
+<!-- 6. Use case: Land & water conservation -->
+<section>
+  <h2>Land &amp; water in the balance</h2>
+  <div class="uses">
+    <div class="item">
+      <h3>Trust for Public Land</h3>
+      <p>Mapping the parcels behind ballot measures &mdash; what's protected, what's at risk, who has access.</p>
+      <span class="who">NASA-supported</span>
+    </div>
+    <div class="item">
+      <h3>California 30&times;30</h3>
+      <p>Tracking the state's commitment to conserve 30% of lands and waters by 2030.</p>
+      <span class="who">with the California Biodiversity Network</span>
+    </div>
+    <div class="item">
+      <h3>Greater Yellowstone</h3>
+      <p>Public and private dashboards for stakeholders working across the largest intact ecosystem in the lower 48.</p>
+      <span class="who">with the Stone Center for Conservation Science</span>
+    </div>
+    <div class="item">
+      <h3>Blue Boundaries</h3>
+      <p>Helping prioritize where wetland conservation investment goes furthest &mdash; for biodiversity, carbon, and people downstream.</p>
+      <span class="who">with National Geographic Society</span>
+    </div>
+    <div class="item">
+      <h3>Humboldt &amp; the North Coast</h3>
+      <p>Local-scale habitat and land-use exploration for community partners.</p>
+      <span class="who">UC Berkeley field collaborations</span>
+    </div>
+  </div>
+</section>
+
+<!-- 8. The catalog -->
+<section>
+  <h2>One catalog behind every map</h2>
+  <img src="stac-catalog.png" alt="Open data catalog browser listing 30+ geospatial datasets" class="frame" style="margin-top: 12px;">
+  <p class="subtitle">Open, browsable, growing &mdash; every dataset queryable in plain language.</p>
+</section>
+
+<!-- 9. Partners + close -->
+<section>
+  <h2>Built with partners</h2>
+  <div class="partners">
+    <div class="p">Trust for Public Land</div>
+    <div class="p">National Geographic</div>
+    <div class="p">UN BBNJ delegations</div>
+    <div class="p">California Wolf Project</div>
+    <div class="p">California Biodiversity Network</div>
+    <div class="p">Stone Center for Conservation Science</div>
+    <div class="p">Benioff Ocean Science Laboratory</div>
+    <div class="p">NASA</div>
+    <div class="p">UC Berkeley</div>
+    <div class="p">National Research Platform</div>
+  </div>
+  <div class="links">
+    <p style="margin-top: 28px;">
+      <a href="https://github.com/boettiger-lab/geo-agent">github.com/boettiger-lab/geo-agent</a><br>
+      <span class="muted">cboettig@berkeley.edu</span>
+    </p>
+  </div>
+</section>
+
+</div><!-- /.slides -->
+</div><!-- /.reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    hashOneBasedIndex: true,
+    slideNumber: false,
+    width: 1200,
+    height: 700,
+    margin: 0.06,
+    transition: 'fade',
+    transitionSpeed: 'fast'
+  });
+</script>
+</body>
+</html>

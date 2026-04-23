@@ -13,9 +13,8 @@
     - TPL -- Ballot measures, protected areas. (NASA supported, w/ Justin)
     - wetlands -- NatGeo blue boundaries. Prioritize investment (Justin)
     - wyoming -- Stone Center / GYE (public demo, private) (Arthur)
-    - High Seas -- UN negotiations, protected areas (Doug)
+    - High Seas -- UN negotiations, protected areas (BOSL / Doug)
     - CA Wolves -- https://californiawolfproject.berkeley.edu/ (Justin)
-    - Cacao/ECOM. (Ale)
     - Humboldt (Ale) 
     - CBN-30x30, CA protected areas (David Ackerly)
 
